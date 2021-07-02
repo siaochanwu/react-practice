@@ -1,8 +1,32 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 export default function Todo(props) {
   const [isEditing, setEditing] = useState(false)
   const [newName, setNewName] = useState('')
+
+  // returns a mutable ref object whose .current property is initialized to the passed argument (initialValue)
+  const editFieldRef = useRef(null)
+  const editButtonRef = useRef(null)
+
+  const wasEditing = usePrevious(isEditing)//to track the previous value of isEditing
+
+  function usePrevious(value) {
+    const ref = useRef()
+    useEffect(() => {
+      ref.current = value
+      return ref.current
+    });
+  }
+
+  useEffect(() => {
+    if(!wasEditing && isEditing) {
+      editFieldRef.current.focus()
+    }
+    if(wasEditing && !isEditing) {
+      editButtonRef.current.focus()
+    }
+  }, [wasEditing, isEditing]);//第二參數改變才會重跑
+  
 
   function handleChange(e){
     setNewName(e.target.value)
@@ -22,7 +46,7 @@ export default function Todo(props) {
         <label className="todo-label" htmlFor={props.id}>
           New name for {props.name}
         </label>
-        <input id={props.id} className="todo-text" type="text" value={newName} onChange={handleChange} />
+        <input id={props.id} className="todo-text" type="text" value={newName} onChange={handleChange} ref={editFieldRef} />
       </div>
       <div className="btn-group">
         <button type="button" className="btn todo-cancel" onClick={() => setEditing(false)}>
@@ -57,6 +81,7 @@ export default function Todo(props) {
             type="button"
             className="btn btn__danger"
             onClick={() => props.deleteTask(props.id)}
+            ref={editButtonRef}
           >
             Delete <span className="visually-hidden">{props.name}</span>
           </button>

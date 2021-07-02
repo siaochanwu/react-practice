@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Todo from './Todo';
 import Form from './Form';
 import FilterButton from './FilterButton';
@@ -17,6 +17,16 @@ const filterName = Object.keys(filterMap)
 function App(props) {
   const [tasks, setTasks] = useState(props.tasks);
   const [filter, setFilter] = useState('All');
+
+  const listHeadingRef = useRef(null)
+
+  function usePrevious(value) {
+    const ref = useRef();
+    useEffect(() => {
+      ref.current = value;
+    });
+    return ref.current;
+  }
 
   function toggleTaskCompleted(id){
     const updateTask = tasks.map(task => {
@@ -69,6 +79,13 @@ function App(props) {
   const tasknum = taskList.length !== 1 ? 'tasks': 'task'
   const headingText = `${taskList.length} ${tasknum} remaining`;
 
+  const prevTaskLength = usePrevious(tasks.length)
+
+  useEffect(() => {
+    if(tasks.length - prevTaskLength === -1){
+      listHeadingRef.current.focus()
+    }
+  }, [tasks.length, prevTaskLength]);
 
   return (
     <div className="todoapp stack-large">
@@ -77,7 +94,7 @@ function App(props) {
       <div className="filters btn-group stack-exception">
         {filterList}
       </div>
-      <h2 id="list-heading">
+      <h2 id="list-heading" tabIndex="-1" ref={listHeadingRef}>
         {headingText}
       </h2>
       <ul className="todo-list stack-large stack-exception" aria-labelledby="list-heading">
